@@ -417,6 +417,11 @@
         <p class="text-sm text-slate-500 mb-6">Resposta em até 1 dia útil</p>
         <div id="form-content">
           <div class="space-y-4">
+            <!-- Honeypot anti-bot: invisível pra humano, ímã pra bot. NÃO remover. -->
+            <div aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;">
+              <label>Não preencha este campo</label>
+              <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
+            </div>
             <div><label class="block text-sm font-semibold mb-1.5">Nome completo *</label><input id="lead-nome" type="text" class="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-brand-blue transition" placeholder="Seu nome"></div>
             <div><label class="block text-sm font-semibold mb-1.5">E-mail corporativo *</label><input id="lead-email" type="email" class="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-brand-blue transition" placeholder="voce@empresa.com.br"></div>
             <div class="grid grid-cols-2 gap-4">
