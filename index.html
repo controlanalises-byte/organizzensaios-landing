@@ -1,3 +1,11 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<!-- Sem esta meta o mobile renderiza a viewport virtual (~980px) e os breakpoints do Tailwind nunca disparam. NÃO remover. -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>OrganizzEnsaios — Inteligência Ambiental, Conformidade e Gestão</title>
+<meta name="description" content="Plataforma de gestão de análises ambientais: interpretação automática conforme normas brasileiras, dashboards em tempo real e georreferenciamento.">
 <!-- OrganizzEnsaios - Site Institucional Dinâmico (Supabase) -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
@@ -18,6 +26,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   html { scroll-behavior: smooth; }
+  /* Navbar é fixed: compensa a altura ao pular para uma âncora */
+  section[id] { scroll-margin-top: 5rem; }
   body { font-family: 'Inter', sans-serif; }
   .fade-in { opacity: 0; transform: translateY(20px); transition: all 0.6s ease-out; }
   .fade-in.visible { opacity: 1; transform: translateY(0); }
@@ -29,22 +39,51 @@
   .mockup-shadow { box-shadow: 0 30px 60px -15px rgba(30, 42, 71, 0.25); }
   .skeleton { background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%); background-size: 200% 100%; animation: skel 1.5s infinite; border-radius: 6px; }
   @keyframes skel { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+  /* Nenhum elemento pode estourar a largura da tela no mobile */
+  html, body { max-width: 100%; overflow-x: hidden; }
+
+  /* Alvos de toque com no mínimo 44px (recomendação WCAG 2.5.5 / HIG) */
+  @media (max-width: 767px) {
+    a[href^="#"], button, select, input, textarea { min-height: 44px; }
+    .card-hover:hover { transform: none; box-shadow: none; } /* hover não faz sentido em touch */
+  }
+
+  /* Card realmente navegável: o link interno cobre o card inteiro (stretched link),
+     então o clique funciona em qualquer ponto sem sacrificar a semântica pro leitor de tela. */
+  .card-link { position: relative; transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease; }
+  .card-link:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -10px rgba(30, 42, 71, 0.15); border-color: #BFDBFE; }
+  .card-link:focus-within { outline: 2px solid #2563EB; outline-offset: 3px; }
+  .card-link .stretched::after { content: ''; position: absolute; inset: 0; border-radius: 1rem; }
+  .card-link:hover .stretched svg { transform: translateX(4px); }
+  .card-link .stretched svg { transition: transform .2s ease; }
+  @media (max-width: 767px) { .card-link:hover { transform: none; box-shadow: none; } }
+
+  /* Estado inválido dos campos do formulário */
+  .field.is-invalid { border-color: #DC2626; background-color: #FEF2F2; }
+  .field.is-invalid:focus { border-color: #DC2626; box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15); }
+
+  /* Menu mobile */
+  #mobile-menu { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+  #mobile-menu.open { max-height: 26rem; }
 </style>
+</head>
+<body>
 
 <div class="bg-white text-brand-navy">
 
   <!-- ============ NAVBAR ============ -->
   <nav class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-100">
-    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <svg width="32" height="32" viewBox="0 0 100 100" fill="none">
+    <div class="max-w-7xl mx-auto px-5 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <svg width="32" height="32" viewBox="0 0 100 100" fill="none" class="flex-shrink-0">
           <circle cx="50" cy="20" r="6" fill="#2563EB"/><circle cx="75" cy="32" r="6" fill="#2563EB"/>
           <circle cx="85" cy="55" r="6" fill="#2563EB"/><circle cx="75" cy="78" r="6" fill="#2563EB"/>
           <circle cx="50" cy="88" r="6" fill="#2563EB"/><circle cx="25" cy="78" r="6" fill="#2563EB"/>
           <circle cx="15" cy="55" r="6" fill="#2563EB"/><circle cx="25" cy="32" r="6" fill="#2563EB"/>
           <polygon points="50,35 68,45 68,65 50,75 32,65 32,45" fill="#1E2A47"/>
         </svg>
-        <span class="text-xl font-bold"><span class="text-brand-navy">Organizz</span><span class="text-brand-gray">Ensaios</span></span>
+        <span class="text-lg sm:text-xl font-bold whitespace-nowrap"><span class="text-brand-navy">Organizz</span><span class="text-brand-gray">Ensaios</span></span>
       </div>
       <div class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-700">
         <a href="#sobre" class="hover:text-brand-blue transition">Sobre</a>
@@ -54,33 +93,49 @@
         <a href="#contato" class="hover:text-brand-blue transition">Contato</a>
       </div>
       <div class="flex items-center gap-3">
-        <a href="https://organizzensaios.com.br" class="hidden sm:inline-block text-sm font-medium text-brand-navy hover:text-brand-blue transition">Entrar</a>
-        <a href="#contato" class="bg-brand-blue text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-brand-navy transition shadow-sm">Solicitar Demo</a>
+        <a href="https://organizzensaios.com.br" class="hidden md:inline-block text-sm font-medium text-brand-navy hover:text-brand-blue transition">Entrar</a>
+        <a href="#contato" class="hidden sm:inline-flex items-center bg-brand-blue text-white px-5 py-3 rounded-lg text-sm font-semibold hover:bg-brand-navy transition shadow-sm">Solicitar Demo</a>
+        <button id="menu-toggle" type="button" class="md:hidden w-11 h-11 -mr-2 flex items-center justify-center rounded-lg text-brand-navy hover:bg-slate-100 transition" aria-label="Abrir menu de navegação" aria-expanded="false" aria-controls="mobile-menu">
+          <svg id="menu-icon-open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          <svg id="menu-icon-close" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+    <!-- Menu mobile -->
+    <div id="mobile-menu" class="md:hidden border-t border-slate-100 bg-white">
+      <div class="px-5 py-2 flex flex-col text-base font-medium text-slate-700">
+        <a href="#sobre" class="mobile-link py-3 border-b border-slate-50 hover:text-brand-blue transition">Sobre</a>
+        <a href="#funcionalidades" class="mobile-link py-3 border-b border-slate-50 hover:text-brand-blue transition">Funcionalidades</a>
+        <a href="#planos" class="mobile-link py-3 border-b border-slate-50 hover:text-brand-blue transition">Planos</a>
+        <a href="#faq" class="mobile-link py-3 border-b border-slate-50 hover:text-brand-blue transition">FAQ</a>
+        <a href="#contato" class="mobile-link py-3 border-b border-slate-50 hover:text-brand-blue transition">Contato</a>
+        <a href="https://organizzensaios.com.br" class="mobile-link py-3 hover:text-brand-blue transition">Entrar</a>
+        <a href="#contato" class="mobile-link sm:hidden my-3 bg-brand-blue text-white px-5 py-3 rounded-lg text-center font-semibold hover:bg-brand-navy transition">Solicitar Demo</a>
       </div>
     </div>
   </nav>
 
   <!-- ============ HERO ============ -->
-  <section class="pt-32 pb-20 px-6 bg-gradient-to-br from-slate-50 via-white to-blue-50">
-    <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+  <section class="pt-24 sm:pt-32 pb-14 sm:pb-20 px-5 sm:px-6 bg-gradient-to-br from-slate-50 via-white to-blue-50">
+    <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-10 lg:gap-12 items-center">
       <div>
         <div class="inline-flex items-center gap-2 bg-blue-50 text-brand-blue px-4 py-1.5 rounded-full text-sm font-semibold mb-6">
           <span class="w-2 h-2 bg-brand-blue rounded-full pulse-dot"></span>
           <span data-bind="hero.badge">Plataforma 100% conforme normas brasileiras</span>
         </div>
-        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight mb-6">
+        <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-5 sm:mb-6">
           <span data-bind="hero.titulo_parte1">Inteligência Ambiental,</span>
           <span class="gradient-text" data-bind="hero.titulo_parte2">Conformidade e Gestão</span>
           <span data-bind="hero.titulo_parte3">em um único painel</span>
         </h1>
-        <p class="text-lg text-slate-600 mb-8 leading-relaxed" data-bind="hero.subtitulo">
+        <p class="text-base sm:text-lg text-slate-600 mb-7 sm:mb-8 leading-relaxed" data-bind="hero.subtitulo">
           Transforme dados laboratoriais em decisões rápidas, seguras e estratégicas.
         </p>
         <div class="flex flex-col sm:flex-row gap-4">
           <a href="#contato" class="bg-brand-blue text-white px-7 py-3.5 rounded-lg font-semibold hover:bg-brand-navy transition shadow-lg hover:shadow-xl text-center" data-bind="hero.cta_primario">Solicitar Demonstração</a>
           <a href="#planos" class="bg-white text-brand-navy border-2 border-slate-200 px-7 py-3.5 rounded-lg font-semibold hover:border-brand-blue hover:text-brand-blue transition text-center" data-bind="hero.cta_secundario">Ver Planos</a>
         </div>
-        <div class="flex flex-wrap items-center gap-6 mt-8 text-sm text-slate-500" id="hero-badges">
+        <div class="flex flex-wrap items-center gap-x-6 gap-y-3 mt-7 sm:mt-8 text-sm text-slate-500" id="hero-badges">
           <!-- Badges populadas via JS -->
         </div>
       </div>
@@ -126,7 +181,7 @@
   </section>
 
   <!-- ============ PÍLULAS DE VALOR ============ -->
-  <section class="py-20 px-6 bg-white">
+  <section class="py-14 sm:py-20 px-5 sm:px-6 bg-white">
     <div class="max-w-7xl mx-auto">
       <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6" id="pilulas-grid">
         <!-- Populadas via JS -->
@@ -135,61 +190,69 @@
   </section>
 
   <!-- ============ SOBRE ============ -->
-  <section id="sobre" class="py-20 px-6 bg-slate-50">
+  <section id="sobre" class="py-14 sm:py-20 px-5 sm:px-6 bg-slate-50">
     <div class="max-w-7xl mx-auto">
-      <div class="text-center mb-16">
+      <div class="text-center mb-10 sm:mb-16">
         <div class="inline-block text-brand-blue text-sm font-bold uppercase tracking-wider mb-3">Sobre a Plataforma</div>
-        <h2 class="text-4xl lg:text-5xl font-extrabold mb-4"><span data-bind="sobre.titulo_pre">O que é o</span> <span class="gradient-text">OrganizzEnsaios</span></h2>
-        <p class="text-lg text-slate-600 max-w-3xl mx-auto" data-bind="sobre.descricao"></p>
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4"><span data-bind="sobre.titulo_pre">O que é o</span> <span class="gradient-text">OrganizzEnsaios</span></h2>
+        <p class="text-base sm:text-lg text-slate-600 max-w-3xl mx-auto" data-bind="sobre.descricao"></p>
       </div>
       <div class="grid md:grid-cols-2 gap-8">
-        <div class="bg-white rounded-2xl p-8 border border-slate-100">
+        <div class="card-link bg-white rounded-2xl p-6 sm:p-8 border border-slate-100">
           <div class="flex items-center gap-3 mb-6">
-            <div class="w-10 h-10 bg-brand-blue rounded-lg flex items-center justify-center">
+            <div class="w-10 h-10 bg-brand-blue rounded-lg flex items-center justify-center flex-shrink-0">
               <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             </div>
-            <h3 class="text-2xl font-bold">O que o sistema faz</h3>
+            <h3 class="text-xl sm:text-2xl font-bold">O que o sistema faz</h3>
           </div>
-          <ul class="space-y-4" id="sobre-o-que-faz"></ul>
+          <ul class="space-y-4 mb-6" id="sobre-o-que-faz"></ul>
+          <a href="#funcionalidades" class="stretched inline-flex items-center gap-2 text-sm font-semibold text-brand-blue hover:text-brand-navy transition">
+            Ver todas as funcionalidades
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </a>
         </div>
-        <div class="bg-white rounded-2xl p-8 border border-slate-100">
+        <div class="card-link bg-white rounded-2xl p-6 sm:p-8 border border-slate-100">
           <div class="flex items-center gap-3 mb-6">
-            <div class="w-10 h-10 bg-brand-navy rounded-lg flex items-center justify-center">
+            <div class="w-10 h-10 bg-brand-navy rounded-lg flex items-center justify-center flex-shrink-0">
               <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
             </div>
-            <h3 class="text-2xl font-bold">Para quem foi criado</h3>
+            <h3 class="text-xl sm:text-2xl font-bold">Para quem foi criado</h3>
           </div>
-          <ul class="space-y-4" id="sobre-para-quem"></ul>
+          <ul class="space-y-4 mb-6" id="sobre-para-quem"></ul>
+          <a href="#publico-alvo" class="stretched inline-flex items-center gap-2 text-sm font-semibold text-brand-blue hover:text-brand-navy transition">
+            Ver todos os segmentos atendidos
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </a>
         </div>
       </div>
     </div>
   </section>
 
   <!-- ============ PROBLEMAS RESOLVIDOS ============ -->
-  <section class="py-20 px-6 bg-white">
+  <section class="py-14 sm:py-20 px-5 sm:px-6 bg-white">
     <div class="max-w-7xl mx-auto">
-      <div class="text-center mb-16">
+      <div class="text-center mb-10 sm:mb-16">
         <div class="inline-block text-brand-blue text-sm font-bold uppercase tracking-wider mb-3">Desafios</div>
-        <h2 class="text-4xl lg:text-5xl font-extrabold mb-4">Problemas que <span class="gradient-text">resolvemos</span></h2>
-        <p class="text-lg text-slate-600 max-w-3xl mx-auto">A gestão ambiental tradicional é marcada por ineficiências que comprometem conformidade, produtividade e segurança técnica.</p>
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4">Problemas que <span class="gradient-text">resolvemos</span></h2>
+        <p class="text-base sm:text-lg text-slate-600 max-w-3xl mx-auto">A gestão ambiental tradicional é marcada por ineficiências que comprometem conformidade, produtividade e segurança técnica.</p>
       </div>
       <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6" id="problemas-grid"></div>
     </div>
   </section>
 
   <!-- ============ FUNCIONALIDADES (mockups estáticos premium) ============ -->
-  <section id="funcionalidades" class="py-20 px-6 bg-slate-50">
+  <section id="funcionalidades" class="py-14 sm:py-20 px-5 sm:px-6 bg-slate-50">
     <div class="max-w-7xl mx-auto">
-      <div class="text-center mb-16">
+      <div class="text-center mb-10 sm:mb-16">
         <div class="inline-block text-brand-blue text-sm font-bold uppercase tracking-wider mb-3">Funcionalidades</div>
-        <h2 class="text-4xl lg:text-5xl font-extrabold mb-4">Tudo que você precisa em <span class="gradient-text">um único painel</span></h2>
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4">Tudo que você precisa em <span class="gradient-text">um único painel</span></h2>
       </div>
 
       <!-- Conformidade -->
-      <div class="grid lg:grid-cols-2 gap-12 items-center mb-20">
+      <div class="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center mb-12 sm:mb-20">
         <div>
           <div class="inline-flex items-center gap-2 bg-green-50 text-green-700 px-3 py-1 rounded-full text-xs font-bold mb-4"><span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>CONFORMIDADE INTELIGENTE</div>
-          <h3 class="text-3xl font-bold mb-4">Gestão automática de conformidade</h3>
+          <h3 class="text-2xl sm:text-3xl font-bold mb-4">Gestão automática de conformidade</h3>
           <p class="text-slate-600 mb-6">O sistema identifica automaticamente todos os eventos críticos do monitoramento ambiental, eliminando interpretação manual.</p>
           <ul class="space-y-3">
             <li class="flex gap-3"><span class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0"><svg class="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></span><span class="text-slate-700"><strong>Resultados Conformes</strong> – identificação automática</span></li>
@@ -209,10 +272,10 @@
       </div>
 
       <!-- Dashboard -->
-      <div class="grid lg:grid-cols-2 gap-12 items-center mb-20">
+      <div class="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center mb-12 sm:mb-20">
         <div class="lg:order-2">
           <div class="inline-flex items-center gap-2 bg-blue-50 text-brand-blue px-3 py-1 rounded-full text-xs font-bold mb-4"><span class="w-1.5 h-1.5 bg-brand-blue rounded-full"></span>DASHBOARD EXECUTIVO</div>
-          <h3 class="text-3xl font-bold mb-4">Indicadores estratégicos em tempo real</h3>
+          <h3 class="text-2xl sm:text-3xl font-bold mb-4">Indicadores estratégicos em tempo real</h3>
           <p class="text-slate-600 mb-6">Visualize tudo em um só lugar: análises totais, índices de conformidade, indicadores por matriz, ranking de parâmetros críticos e relatórios exportáveis.</p>
           <div class="grid grid-cols-2 gap-4">
             <div class="bg-white rounded-xl p-4 border border-slate-100"><div class="text-3xl font-extrabold text-brand-blue">460+</div><div class="text-xs text-slate-500 font-medium">Análises Monitoradas</div></div>
@@ -241,10 +304,10 @@
       </div>
 
       <!-- Geo -->
-      <div class="grid lg:grid-cols-2 gap-12 items-center mb-20">
+      <div class="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center mb-12 sm:mb-20">
         <div>
           <div class="inline-flex items-center gap-2 bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-xs font-bold mb-4"><span class="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>GEORREFERENCIAMENTO</div>
-          <h3 class="text-3xl font-bold mb-4">Mapeamento inteligente de amostras</h3>
+          <h3 class="text-2xl sm:text-3xl font-bold mb-4">Mapeamento inteligente de amostras</h3>
           <p class="text-slate-600 mb-6">Controle geográfico completo, com identificação rápida de áreas críticas e histórico ambiental por região.</p>
           <ul class="space-y-3">
             <li class="flex gap-3"><svg class="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg><span class="text-slate-700"><strong>Localização dos Pontos</strong> – visualização em mapa interativo</span></li>
@@ -269,10 +332,10 @@
       </div>
 
       <!-- Integrações -->
-      <div class="grid lg:grid-cols-2 gap-12 items-center">
+      <div class="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
         <div class="lg:order-2">
           <div class="inline-flex items-center gap-2 bg-orange-50 text-orange-700 px-3 py-1 rounded-full text-xs font-bold mb-4"><span class="w-1.5 h-1.5 bg-orange-500 rounded-full"></span>INTEGRAÇÕES</div>
-          <h3 class="text-3xl font-bold mb-4">Conecte-se a laboratórios e sistemas</h3>
+          <h3 class="text-2xl sm:text-3xl font-bold mb-4">Conecte-se a laboratórios e sistemas</h3>
           <p class="text-slate-600 mb-6">Integração com sistemas e fontes de dados do ecossistema ambiental — menos retrabalho, mais produtividade.</p>
           <div class="space-y-3">
             <div class="flex items-start gap-3 bg-white p-4 rounded-xl border border-slate-100"><div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0"><svg class="w-5 h-5 text-brand-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div><div><div class="font-bold">Laboratórios & Planilhas</div><div class="text-sm text-slate-600">Importação de XLSX, CSV e labs credenciados</div></div></div>
@@ -280,7 +343,7 @@
             <div class="flex items-start gap-3 bg-white p-4 rounded-xl border border-slate-100"><div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0"><svg class="w-5 h-5 text-brand-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div><div><div class="font-bold">Relatórios & Plataformas</div><div class="text-sm text-slate-600">Exportação Excel, CSV, HTML e laudos</div></div></div>
           </div>
         </div>
-        <div class="lg:order-1 bg-white rounded-2xl p-8 mockup-shadow border border-slate-100">
+        <div class="lg:order-1 bg-white rounded-2xl p-6 sm:p-8 mockup-shadow border border-slate-100">
           <div class="grid grid-cols-3 gap-4 items-center">
             <div class="bg-slate-50 rounded-lg p-4 text-center"><div class="text-2xl mb-2">📊</div><div class="text-xs font-semibold">XLSX</div></div>
             <div class="text-center text-slate-400">→</div>
@@ -298,14 +361,14 @@
   </section>
 
   <!-- ============ ANTES VS DEPOIS ============ -->
-  <section class="py-20 px-6 bg-white">
+  <section class="py-14 sm:py-20 px-5 sm:px-6 bg-white">
     <div class="max-w-7xl mx-auto">
-      <div class="text-center mb-16">
+      <div class="text-center mb-10 sm:mb-16">
         <div class="inline-block text-brand-blue text-sm font-bold uppercase tracking-wider mb-3">Transformação</div>
-        <h2 class="text-4xl lg:text-5xl font-extrabold mb-4">Antes vs. Depois</h2>
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4">Antes vs. Depois</h2>
       </div>
       <div class="grid md:grid-cols-2 gap-8">
-        <div class="bg-slate-50 rounded-2xl p-8 border-2 border-slate-200">
+        <div class="bg-slate-50 rounded-2xl p-6 sm:p-8 border-2 border-slate-200">
           <div class="inline-block bg-slate-300 text-slate-700 px-3 py-1 rounded-full text-xs font-bold mb-4">ANTES</div>
           <h3 class="text-2xl font-bold text-slate-700 mb-6">Gestão Tradicional</h3>
           <ul class="space-y-3">
@@ -318,7 +381,7 @@
             <li class="flex gap-3 text-slate-600"><svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>Sem visão estratégica</li>
           </ul>
         </div>
-        <div class="bg-gradient-to-br from-blue-50 to-green-50 rounded-2xl p-8 border-2 border-brand-blue">
+        <div class="bg-gradient-to-br from-blue-50 to-green-50 rounded-2xl p-6 sm:p-8 border-2 border-brand-blue">
           <div class="inline-block bg-brand-blue text-white px-3 py-1 rounded-full text-xs font-bold mb-4">COM ORGANIZZENSAIOS</div>
           <h3 class="text-2xl font-bold text-brand-navy mb-6">Gestão Inteligente</h3>
           <ul class="space-y-3">
@@ -336,24 +399,24 @@
   </section>
 
   <!-- ============ PARA QUEM É ============ -->
-  <section class="py-20 px-6 bg-slate-50">
+  <section id="publico-alvo" class="py-14 sm:py-20 px-5 sm:px-6 bg-slate-50">
     <div class="max-w-7xl mx-auto">
-      <div class="text-center mb-16">
+      <div class="text-center mb-10 sm:mb-16">
         <div class="inline-block text-brand-blue text-sm font-bold uppercase tracking-wider mb-3">Público-Alvo</div>
-        <h2 class="text-4xl lg:text-5xl font-extrabold mb-4">Para quem é o <span class="gradient-text">OrganizzEnsaios</span></h2>
-        <p class="text-lg text-slate-600 max-w-3xl mx-auto">Solução para os principais segmentos de gestão ambiental no Brasil.</p>
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4">Para quem é o <span class="gradient-text">OrganizzEnsaios</span></h2>
+        <p class="text-base sm:text-lg text-slate-600 max-w-3xl mx-auto">Solução para os principais segmentos de gestão ambiental no Brasil.</p>
       </div>
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="segmentos-grid"></div>
     </div>
   </section>
 
   <!-- ============ PLANOS ============ -->
-  <section id="planos" class="py-20 px-6 bg-white">
+  <section id="planos" class="py-14 sm:py-20 px-5 sm:px-6 bg-white">
     <div class="max-w-7xl mx-auto">
-      <div class="text-center mb-16">
+      <div class="text-center mb-10 sm:mb-16">
         <div class="inline-block text-brand-blue text-sm font-bold uppercase tracking-wider mb-3">Planos e Preços</div>
-        <h2 class="text-4xl lg:text-5xl font-extrabold mb-4">Escolha o plano ideal</h2>
-        <p class="text-lg text-slate-600 max-w-3xl mx-auto">Comece grátis e evolua conforme sua operação cresce. Sem compromisso, sem cartão de crédito.</p>
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4">Escolha o plano ideal</h2>
+        <p class="text-base sm:text-lg text-slate-600 max-w-3xl mx-auto">Comece grátis e evolua conforme sua operação cresce. Sem compromisso, sem cartão de crédito.</p>
       </div>
       <div class="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto" id="planos-grid"></div>
       <p class="text-center text-sm text-slate-500 mt-8">💳 Pagamento mensal ou anual (com desconto) • 🔒 LGPD compliant • ❌ Sem fidelidade</p>
@@ -361,35 +424,35 @@
   </section>
 
   <!-- ============ DIFERENCIAIS ============ -->
-  <section class="py-20 px-6 bg-gradient-to-br from-brand-navy to-brand-blue text-white">
+  <section class="py-14 sm:py-20 px-5 sm:px-6 bg-gradient-to-br from-brand-navy to-brand-blue text-white">
     <div class="max-w-7xl mx-auto">
-      <div class="text-center mb-16">
+      <div class="text-center mb-10 sm:mb-16">
         <div class="inline-block text-blue-200 text-sm font-bold uppercase tracking-wider mb-3">Diferenciais</div>
-        <h2 class="text-4xl lg:text-5xl font-extrabold mb-4">Por que escolher o OrganizzEnsaios</h2>
-        <p class="text-lg text-blue-100 max-w-3xl mx-auto">Tecnologia desenvolvida sob a realidade ambiental brasileira, com foco em rastreabilidade, conformidade e velocidade de decisão.</p>
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4">Por que escolher o OrganizzEnsaios</h2>
+        <p class="text-base sm:text-lg text-blue-100 max-w-3xl mx-auto">Tecnologia desenvolvida sob a realidade ambiental brasileira, com foco em rastreabilidade, conformidade e velocidade de decisão.</p>
       </div>
       <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-6" id="diferenciais-grid"></div>
     </div>
   </section>
 
   <!-- ============ FAQ ============ -->
-  <section id="faq" class="py-20 px-6 bg-white">
+  <section id="faq" class="py-14 sm:py-20 px-5 sm:px-6 bg-white">
     <div class="max-w-4xl mx-auto">
-      <div class="text-center mb-16">
+      <div class="text-center mb-10 sm:mb-16">
         <div class="inline-block text-brand-blue text-sm font-bold uppercase tracking-wider mb-3">FAQ</div>
-        <h2 class="text-4xl lg:text-5xl font-extrabold mb-4">Perguntas frequentes</h2>
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4">Perguntas frequentes</h2>
       </div>
       <div class="space-y-4" id="faq-list"></div>
     </div>
   </section>
 
   <!-- ============ CONTATO ============ -->
-  <section id="contato" class="py-20 px-6 bg-gradient-to-br from-slate-50 to-blue-50">
-    <div class="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-start">
+  <section id="contato" class="py-14 sm:py-20 px-5 sm:px-6 bg-gradient-to-br from-slate-50 to-blue-50">
+    <div class="max-w-6xl mx-auto grid lg:grid-cols-2 gap-10 lg:gap-12 items-start">
       <div>
         <div class="inline-block text-brand-blue text-sm font-bold uppercase tracking-wider mb-3">Vamos conversar</div>
-        <h2 class="text-4xl lg:text-5xl font-extrabold mb-6" data-bind="contato.titulo">Transforme sua gestão ambiental</h2>
-        <p class="text-lg text-slate-600 mb-8" data-bind="contato.subtitulo">Solicite uma demonstração gratuita.</p>
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-5 sm:mb-6" data-bind="contato.titulo">Transforme sua gestão ambiental</h2>
+        <p class="text-base sm:text-lg text-slate-600 mb-7 sm:mb-8" data-bind="contato.subtitulo">Solicite uma demonstração gratuita.</p>
         <div class="space-y-4">
           <div class="flex items-start gap-4 bg-white p-5 rounded-xl border border-slate-100">
             <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -412,7 +475,7 @@
         </div>
       </div>
 
-      <div class="bg-white rounded-2xl p-8 border border-slate-100 shadow-xl">
+      <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-100 shadow-xl">
         <h3 class="text-2xl font-bold mb-2">Solicite sua demonstração</h3>
         <p class="text-sm text-slate-500 mb-6">Resposta em até 1 dia útil</p>
         <div id="form-content">
@@ -422,27 +485,44 @@
               <label>Não preencha este campo</label>
               <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
             </div>
-            <div><label class="block text-sm font-semibold mb-1.5">Nome completo *</label><input id="lead-nome" type="text" class="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-brand-blue transition" placeholder="Seu nome"></div>
-            <div><label class="block text-sm font-semibold mb-1.5">E-mail corporativo *</label><input id="lead-email" type="email" class="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-brand-blue transition" placeholder="voce@empresa.com.br"></div>
-            <div class="grid grid-cols-2 gap-4">
-              <div><label class="block text-sm font-semibold mb-1.5">Telefone</label><input id="lead-telefone" type="tel" class="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-brand-blue transition" placeholder="(65) 9 9999-9999"></div>
-              <div><label class="block text-sm font-semibold mb-1.5">Empresa *</label><input id="lead-empresa" type="text" class="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-brand-blue transition" placeholder="Nome da empresa"></div>
+            <div>
+              <label for="lead-nome" class="block text-sm font-semibold mb-1.5">Nome completo *</label>
+              <input id="lead-nome" type="text" autocomplete="name" class="field w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-brand-blue transition" placeholder="Seu nome" aria-describedby="err-lead-nome">
+              <p id="err-lead-nome" class="err-msg hidden text-sm text-red-600 mt-1.5"></p>
             </div>
             <div>
-              <label class="block text-sm font-semibold mb-1.5">Segmento *</label>
-              <select id="lead-segmento" class="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-brand-blue transition bg-white">
+              <label for="lead-email" class="block text-sm font-semibold mb-1.5">E-mail corporativo *</label>
+              <input id="lead-email" type="email" autocomplete="email" class="field w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-brand-blue transition" placeholder="voce@empresa.com.br" aria-describedby="err-lead-email">
+              <p id="err-lead-email" class="err-msg hidden text-sm text-red-600 mt-1.5"></p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="lead-telefone" class="block text-sm font-semibold mb-1.5">Telefone</label>
+                <input id="lead-telefone" type="tel" inputmode="tel" autocomplete="tel" maxlength="16" class="field w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-brand-blue transition" placeholder="(65) 99999-9999" aria-describedby="err-lead-telefone">
+                <p id="err-lead-telefone" class="err-msg hidden text-sm text-red-600 mt-1.5"></p>
+              </div>
+              <div>
+                <label for="lead-empresa" class="block text-sm font-semibold mb-1.5">Empresa *</label>
+                <input id="lead-empresa" type="text" autocomplete="organization" class="field w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-brand-blue transition" placeholder="Nome da empresa" aria-describedby="err-lead-empresa">
+                <p id="err-lead-empresa" class="err-msg hidden text-sm text-red-600 mt-1.5"></p>
+              </div>
+            </div>
+            <div>
+              <label for="lead-segmento" class="block text-sm font-semibold mb-1.5">Segmento *</label>
+              <select id="lead-segmento" class="field w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-brand-blue transition bg-white" aria-describedby="err-lead-segmento">
                 <option value="">Selecione...</option>
                 <option>Empresa de Saneamento</option><option>Indústria</option><option>Consultoria Ambiental</option>
                 <option>Laboratório</option><option>Prefeitura / Órgão Público</option><option>Outro</option>
               </select>
+              <p id="err-lead-segmento" class="err-msg hidden text-sm text-red-600 mt-1.5"></p>
             </div>
             <div>
-              <label class="block text-sm font-semibold mb-1.5">Plano de interesse</label>
+              <label for="lead-plano" class="block text-sm font-semibold mb-1.5">Plano de interesse</label>
               <select id="lead-plano" class="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-brand-blue transition bg-white">
-                <option>Grátis</option><option selected>Profissional</option><option>Enterprise</option><option>Ainda não sei</option>
+                <option>Grátis</option><option selected>Módulos Pagos</option><option>Pacote Completo</option><option>Ainda não sei</option>
               </select>
             </div>
-            <div><label class="block text-sm font-semibold mb-1.5">Como podemos ajudar?</label><textarea id="lead-mensagem" rows="3" class="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-brand-blue transition resize-none" placeholder="Conte sobre sua operação..."></textarea></div>
+            <div><label for="lead-mensagem" class="block text-sm font-semibold mb-1.5">Como podemos ajudar?</label><textarea id="lead-mensagem" rows="3" class="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-brand-blue transition resize-none" placeholder="Conte sobre sua operação..."></textarea></div>
             <button id="submit-lead" type="button" class="w-full bg-brand-blue text-white py-3.5 rounded-lg font-semibold hover:bg-brand-navy transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">Solicitar demonstração</button>
             <p class="text-xs text-slate-400 text-center">Ao enviar, você concorda com nossa Política de Privacidade. Dados protegidos pela LGPD.</p>
           </div>
@@ -459,9 +539,9 @@
   </section>
 
   <!-- ============ FOOTER ============ -->
-  <footer class="bg-brand-navy text-white py-12 px-6">
+  <footer class="bg-brand-navy text-white py-10 sm:py-12 px-5 sm:px-6">
     <div class="max-w-7xl mx-auto">
-      <div class="grid md:grid-cols-4 gap-8 mb-8">
+      <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-8 mb-8">
         <div>
           <div class="flex items-center gap-2 mb-4">
             <svg width="32" height="32" viewBox="0 0 100 100" fill="none">
@@ -641,7 +721,7 @@
       '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>'
     ];
     grid.innerHTML = pilulas.map((p, i) => `
-      <div class="card-hover bg-white border border-slate-100 rounded-2xl p-6">
+      <div class="bg-white border border-slate-100 rounded-2xl p-6">
         <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4">
           <svg class="w-6 h-6 text-brand-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">${icons[i % icons.length]}</svg>
         </div>
@@ -688,7 +768,7 @@
     const grid = document.getElementById('segmentos-grid');
     if (!grid || !Array.isArray(segmentos)) return;
     grid.innerHTML = segmentos.map(s => `
-      <div class="card-hover bg-white rounded-2xl p-6 border border-slate-100">
+      <div class="bg-white rounded-2xl p-6 border border-slate-100">
         <div class="w-14 h-14 bg-blue-50 rounded-xl flex items-center justify-center mb-4">
           <svg class="w-7 h-7 text-brand-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
         </div>
@@ -722,7 +802,7 @@
       `).join('');
       if (p.destaque) {
         return `
-          <div class="bg-gradient-to-br from-brand-navy to-brand-blue text-white rounded-2xl p-8 relative card-hover transform lg:scale-105 shadow-2xl">
+          <div class="bg-gradient-to-br from-brand-navy to-brand-blue text-white rounded-2xl p-6 sm:p-8 relative card-hover transform lg:scale-105 shadow-2xl">
             <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-yellow-400 text-brand-navy px-4 py-1 rounded-full text-xs font-bold">MAIS POPULAR</div>
             <div class="mb-6">
               <h3 class="text-2xl font-bold mb-2">${p.nome}</h3>
@@ -738,7 +818,7 @@
         `;
       }
       return `
-        <div class="bg-white rounded-2xl p-8 border-2 border-slate-200 card-hover">
+        <div class="bg-white rounded-2xl p-6 sm:p-8 border-2 border-slate-200 card-hover">
           <div class="mb-6">
             <h3 class="text-2xl font-bold mb-2">${p.nome}</h3>
             <p class="text-sm text-slate-500">${p.descricao || ''}</p>
@@ -811,6 +891,83 @@
   // =====================================================================
   // FORMULÁRIO DE LEADS
   // =====================================================================
+  // --- Máscara de telefone: (00) 0000-0000 / (00) 00000-0000 -----------
+  function maskPhone(value) {
+    const d = value.replace(/\D/g, '').slice(0, 11);
+    if (!d) return '';
+    if (d.length <= 2) return `(${d}`;
+    if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+    if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+    return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+  }
+
+  const telInput = document.getElementById('lead-telefone');
+  telInput.addEventListener('input', () => {
+    const atEnd = telInput.selectionStart === telInput.value.length;
+    telInput.value = maskPhone(telInput.value);
+    if (atEnd) telInput.setSelectionRange(telInput.value.length, telInput.value.length);
+  });
+
+  // --- Regras de validação ---------------------------------------------
+  const SO_LETRAS = /^[A-Za-zÀ-ÖØ-öø-ÿ'’.\- ]+$/;
+  const TEM_LETRA = /[A-Za-zÀ-ÖØ-öø-ÿ]/;
+
+  const RULES = {
+    'lead-nome': v => {
+      if (!v) return 'Informe seu nome completo.';
+      if (v.length < 5) return 'O nome deve ter pelo menos 5 caracteres.';
+      if (!SO_LETRAS.test(v)) return 'O nome deve conter apenas letras.';
+      if (v.split(/\s+/).filter(p => p.length >= 2).length < 2)
+        return 'Informe nome e sobrenome.';
+      return null;
+    },
+    'lead-email': v => {
+      if (!v) return 'Informe seu e-mail.';
+      if (!/^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(v)) return 'Informe um e-mail válido.';
+      return null;
+    },
+    'lead-telefone': v => {
+      if (!v) return null; // campo opcional
+      const d = v.replace(/\D/g, '');
+      if (d.length < 10) return 'Telefone incompleto. Use (00) 00000-0000.';
+      if (Number(d.slice(0, 2)) < 11) return 'DDD inválido.';
+      if (/^(\d)\1+$/.test(d)) return 'Informe um telefone válido.';
+      return null;
+    },
+    'lead-empresa': v => {
+      if (!v) return 'Informe o nome da empresa.';
+      if (v.length < 2) return 'O nome da empresa deve ter pelo menos 2 caracteres.';
+      if (!TEM_LETRA.test(v)) return 'O nome da empresa deve conter letras.';
+      return null;
+    },
+    'lead-segmento': v => v ? null : 'Selecione um segmento.'
+  };
+
+  function setFieldError(id, msg) {
+    const el = document.getElementById(id);
+    const box = document.getElementById('err-' + id);
+    el.classList.toggle('is-invalid', !!msg);
+    el.setAttribute('aria-invalid', msg ? 'true' : 'false');
+    box.textContent = msg || '';
+    box.classList.toggle('hidden', !msg);
+  }
+
+  function validateField(id) {
+    const msg = RULES[id](document.getElementById(id).value.trim());
+    setFieldError(id, msg);
+    return !msg;
+  }
+
+  // Valida ao sair do campo; limpa o erro assim que o usuário corrige
+  Object.keys(RULES).forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('blur', () => validateField(id));
+    const live = el.tagName === 'SELECT' ? 'change' : 'input';
+    el.addEventListener(live, () => {
+      if (el.classList.contains('is-invalid')) validateField(id);
+    });
+  });
+
   document.getElementById('submit-lead').addEventListener('click', async () => {
     // Honeypot anti-bot: se o campo oculto veio preenchido, é bot. Finge sucesso e aborta.
     if (document.getElementById('website').value.trim() !== '') {
@@ -819,15 +976,20 @@
       return;
     }
     const btn = document.getElementById('submit-lead');
+
+    // Valida todos os campos e para no primeiro inválido
+    const invalidos = Object.keys(RULES).filter(id => !validateField(id));
+    if (invalidos.length) {
+      const primeiro = document.getElementById(invalidos[0]);
+      primeiro.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      primeiro.focus({ preventScroll: true });
+      return;
+    }
+
     const nome = document.getElementById('lead-nome').value.trim();
     const email = document.getElementById('lead-email').value.trim();
     const empresa = document.getElementById('lead-empresa').value.trim();
     const segmento = document.getElementById('lead-segmento').value;
-
-    if (!nome || !email || !empresa || !segmento) {
-      alert('Por favor, preencha todos os campos obrigatórios (*).');
-      return;
-    }
 
     btn.disabled = true;
     btn.textContent = 'Enviando...';
@@ -869,9 +1031,38 @@
     }
   });
 
+  // =====================================================================
+  // MENU MOBILE (hambúrguer)
+  // =====================================================================
+  (() => {
+    const toggle = document.getElementById('menu-toggle');
+    const menu = document.getElementById('mobile-menu');
+    const iconOpen = document.getElementById('menu-icon-open');
+    const iconClose = document.getElementById('menu-icon-close');
+    if (!toggle || !menu) return;
+
+    const setOpen = (open) => {
+      menu.classList.toggle('open', open);
+      iconOpen.classList.toggle('hidden', open);
+      iconClose.classList.toggle('hidden', !open);
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'Fechar menu de navegação' : 'Abrir menu de navegação');
+    };
+
+    toggle.addEventListener('click', () => setOpen(!menu.classList.contains('open')));
+    // Fecha ao navegar para uma âncora
+    menu.querySelectorAll('.mobile-link').forEach(a => a.addEventListener('click', () => setOpen(false)));
+    // Fecha ao passar para o layout desktop (evita menu preso aberto ao girar a tela)
+    window.addEventListener('resize', () => { if (window.innerWidth >= 768) setOpen(false); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') setOpen(false); });
+  })();
+
   // Fade-in observer
   const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
   }, { threshold: 0.1 });
   document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 </script>
+
+</body>
+</html>
