@@ -458,13 +458,7 @@
             <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
               <svg class="w-6 h-6 text-brand-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
             </div>
-            <div><div class="font-bold mb-1">E-mail</div><div class="text-sm text-slate-600" data-bind="contato.email">contato@organizzensaios.com.br</div></div>
-          </div>
-          <div class="flex items-start gap-4 bg-white p-5 rounded-xl border border-slate-100">
-            <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
-              <svg class="w-6 h-6 text-brand-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-            </div>
-            <div><div class="font-bold mb-1">Telefone / WhatsApp</div><div class="text-sm text-slate-600" data-bind="contato.telefone">(65) 0000-0000</div></div>
+            <div><div class="font-bold mb-1">E-mail</div><div class="text-sm text-slate-600" data-bind="contato.email">comercial@organizzensaios.com.br</div></div>
           </div>
           <div class="flex items-start gap-4 bg-white p-5 rounded-xl border border-slate-100">
             <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -571,14 +565,14 @@
             <li><a href="#contato" class="hover:text-white transition">Contato</a></li>
             <li><a href="https://organizzensaios.com.br/termos" class="hover:text-white transition">Termos de Uso</a></li>
             <li><a href="https://organizzensaios.com.br/privacidade" class="hover:text-white transition">Política de Privacidade</a></li>
-            <li><a href="/admin" class="hover:text-white transition">Painel Admin</a></li>
           </ul>
         </div>
         <div>
           <h4 class="font-bold mb-4">Contato</h4>
           <ul class="space-y-2 text-sm text-blue-200">
-            <li data-bind="footer.email_contato">contato@organizzensaios.com.br</li>
-            <li>Cuiabá – MT, Brasil</li>
+            <li data-bind="footer.email_contato">comercial@organizzensaios.com.br</li>
+            <li data-bind="footer.razao_social">Mattos Benevento Soluções Tecnologia LTDA</li>
+            <li data-bind="footer.endereco">R. Fagundes Varela, 78 – Sala 1, Santa Cruz, Cuiabá/MT – CEP 78068-222</li>
             <li>Atendimento nacional</li>
           </ul>
         </div>
@@ -657,14 +651,15 @@
     contato: {
       titulo: "Transforme sua gestão ambiental",
       subtitulo: "Solicite uma demonstração gratuita.",
-      email: "contato@organizzensaios.com.br",
-      telefone: "(65) 0000-0000",
+      email: "comercial@organizzensaios.com.br",
       endereco: "Cuiabá – MT"
     },
     footer: {
       descricao: "Inteligência ambiental em um único painel.",
       copyright: "© 2026 OrganizzEnsaios. Todos os direitos reservados.",
-      assinatura: "Desenvolvido pela Control — Laboratório ISO/IEC 17025"
+      assinatura: "Desenvolvido pela Control — Laboratório ISO/IEC 17025",
+      razao_social: "Mattos Benevento Soluções Tecnologia LTDA",
+      endereco: "R. Fagundes Varela, 78 – Sala 1, Santa Cruz, Cuiabá/MT – CEP 78068-222"
     }
   };
 
@@ -1021,13 +1016,13 @@
       } else {
         const txt = await response.text();
         console.error('Supabase:', txt);
-        alert('Erro ao enviar. Tente novamente ou envie e-mail para contato@organizzensaios.com.br');
+        alert('Erro ao enviar. Tente novamente ou envie e-mail para comercial@organizzensaios.com.br');
         btn.disabled = false;
         btn.textContent = 'Solicitar demonstração';
       }
     } catch (err) {
       console.error(err);
-      alert('Erro de conexão. Envie e-mail para contato@organizzensaios.com.br');
+      alert('Erro de conexão. Envie e-mail para comercial@organizzensaios.com.br');
       btn.disabled = false;
       btn.textContent = 'Solicitar demonstração';
     }
